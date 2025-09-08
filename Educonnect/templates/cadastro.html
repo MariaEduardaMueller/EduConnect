@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduConnect - Sistema Escolar Completo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+
+    .fade-in { animation: fadeIn 0.5s ease-in; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .login-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .tab-button.active {
+      border-bottom: 2px solid #6366f1;
+      color: #6366f1;
+    }
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+
+  <!-- Tela de Login/Cadastro -->
+  <div id="authScreen" class="min-h-screen login-bg flex items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4 fade-in">
+
+      <!-- Logo e Título -->
+      <div class="text-center mb-6">
+        <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <span class="text-white font-bold text-3xl">📚</span>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-800">EduConnect</h1>
+        <p class="text-gray-600 text-sm">Sistema Escolar Integrado</p>
+      </div>
+
+      <!-- Botões de Tab -->
+      <div class="flex justify-center mb-6 space-x-6">
+        <button onclick="toggleForm('loginForm')" id="tabLogin" class="tab-button text-sm font-semibold text-gray-700 hover:text-indigo-600">Login</button>
+        <button onclick="toggleForm('registerForm')" id="tabRegister" class="tab-button text-sm font-semibold text-gray-700 hover:text-indigo-600">Cadastrar</button>
+      </div>
+
+      <!-- FORMULÁRIO DE LOGIN -->
+      <form id="loginForm" onsubmit="login(event)" class="space-y-4">
+        <h2 class="text-xl font-bold text-gray-800 text-center">Entrar</h2>
+        <input type="email" id="loginEmail" name="email" placeholder="Email" required class="input-field">
+        <input type="password" id="loginPassword" name="password" placeholder="Senha" required class="input-field">
+        <select id="loginUserType" name="user_type" class="input-field" required>
+          <option value="">Tipo de usuário</option>
+          <option value="professor">Professor</option>
+          <option value="aluno">Aluno</option>
+        </select>
+        <button type="submit" class="submit-button">Entrar</button>
+      </form>
+
+      <!-- FORMULÁRIO DE CADASTRO -->
+      <form id="registerForm" onsubmit="register(event)" class="space-y-4 hidden">
+        <h2 class="text-xl font-bold text-gray-800 text-center">Cadastrar</h2>
+        <input type="text" id="registerName" name="name" placeholder="Nome completo" required class="input-field">
+        <input type="email" id="registerEmail" name="email" placeholder="Email" required class="input-field">
+        <input type="password" id="registerPassword" name="password" placeholder="Senha" required class="input-field">
+        <select id="registerUserType" name="user_type" class="input-field" required>
+          <option value="">Tipo de usuário</option>
+          <option value="professor">Professor</option>
+          <option value="aluno">Aluno</option>
+        </select>
+        <button type="submit" class="submit-button">Cadastrar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Tailwind classes com @apply -->
+  <style>
+    .input-field {
+      @apply w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+    }
+    .submit-button {
+      @apply w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105;
+    }
+  </style>
+
+  <!-- JavaScript de alternância de formulários -->
+  <script>
+    function toggleForm(formId) {
+      const loginForm = document.getElementById("loginForm");
+      const registerForm = document.getElementById("registerForm");
+      const tabLogin = document.getElementById("tabLogin");
+      const tabRegister = document.getElementById("tabRegister");
+
+      if (formId === 'loginForm') {
+        loginForm.classList.remove("hidden");
+        registerForm.classList.add("hidden");
+        tabLogin.classList.add("active");
+        tabRegister.classList.remove("active");
+      } else {
+        loginForm.classList.add("hidden");
+        registerForm.classList.remove("hidden");
+        tabLogin.classList.remove("active");
+        tabRegister.classList.add("active");
+      }
+    }
+
+    // Exemplo de funções login/cadastro
+    <script>
+  function login(e) {
+    e.preventDefault();
+
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
+    const userType = document.getElementById("loginUserType").value;
+
+    fetch("/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, password, user_type: userType })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        // ✅ Login OK, redireciona para interface.html
+        alert(data.message);
+        window.location.href = "/interface.html";  // <-- Altere aqui se usar render_template
+      } else {
+        // ❌ Login falhou
+        alert(data.message);
+      }
+    })
+    .catch(err => {
+      console.error("Erro ao fazer login:", err);
+      alert("Erro de rede ou servidor.");
+    });
+  }
+</script>
+
+
+</body>
+</html>
