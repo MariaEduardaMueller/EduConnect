@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduConnect - Sistema Escolar Completo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal.show { display: flex; align-items: center; justify-content: center; }
+        .sidebar-transition { transition: transform 0.3s ease; }
+        .notification { position: fixed; top: 20px; right: 20px; z-index: 1001; }
+        .chart-bar { transition: height 0.5s ease; }
+        .login-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+ 
+
+
+
+
+<!-- Tela de Login/Cadastro -->
+<div id="authScreen" class="min-h-screen login-bg flex items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4 fade-in">
+        <div class="flex justify-center mb-6 space-x-4">
+            <button onclick="toggleForm('loginForm')" class="tab-button text-sm font-semibold text-gray-700 hover:text-indigo-600">Login</button>
+            <button onclick="toggleForm('registerForm')" class="tab-button text-sm font-semibold text-gray-700 hover:text-indigo-600">Cadastrar</button>
+        </div>
+
+        <!-- FORMULÁRIO DE LOGIN -->
+        <form id="loginForm" onsubmit="login(event)" class="space-y-4">
+            <h2 class="text-xl font-bold text-gray-800 text-center">Entrar</h2>
+            <input type="email" id="loginEmail" name="email" placeholder="Email" required class="input-field">
+            <input type="password" id="loginPassword" name="password" placeholder="Senha" required class="input-field">
+            <select id="loginUserType" name="user_type" class="input-field" required>
+                <option value="">Tipo de usuário</option>
+                <option value="professor">Professor</option>
+                <option value="aluno">Aluno</option>
+            </select>
+            <button type="submit" class="submit-button">Entrar</button>
+        </form>
+
+        <!-- FORMULÁRIO DE CADASTRO -->
+        <form id="registerForm" onsubmit="register(event)" class="space-y-4 hidden">
+            <h2 class="text-xl font-bold text-gray-800 text-center">Cadastrar</h2>
+            <input type="text" id="registerName" name="name" placeholder="Nome completo" required class="input-field">
+            <input type="email" id="registerEmail" name="email" placeholder="Email" required class="input-field">
+            <input type="password" id="registerPassword" name="password" placeholder="Senha" required class="input-field">
+            <select id="registerUserType" name="user_type" class="input-field" required>
+                <option value="">Tipo de usuário</option>
+                <option value="professor">Professor</option>
+                <option value="aluno">Aluno</option>
+            </select>
+            <button type="submit" class="submit-button">Cadastrar</button>
+        </form>
+    </div>
+</div>
+
+<style>
+.input-field {
+    @apply w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+.submit-button {
+    @apply w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105;
+}
+</style>
+
+<script>
+function toggleForm(formId) {
+    document.getElementById('loginForm').classList.add('hidden');
+    document.getElementById('registerForm').classList.add('hidden');
+    document.getElementById(formId).classList.remove('hidden');
+}
+async function login(event) {
+    event.preventDefault();  // ✅ bloqueia o envio tradicional
+
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
+    const user_type = document.getElementById("loginUserType").value;
+
+    const res = await fetch('/login', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            email: email,
+            password: password,
+            user_type: user_type
+        })
+    });
+
+    const data = await res.json();
+    alert(data.message);
+    if (data.success) {
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('mainApp').classList.remove('hidden');
+    }
+}
+
+async function register(event) {
+    event.preventDefault();
+    const res = await fetch('/register', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            name: registerName.value,
+            email: registerEmail.value,
+            password: registerPassword.value,
+            user_type: registerUserType.value
+        })
+    });
+    const data = await res.json();
+    alert(data.message);
+    if (data.success) {
+        toggleForm('loginForm');
+    }
+}
+</script>
+
+
+
+
+
+
+    <!-- Main App -->
+    <div id="mainApp" class="hidden">
+        <!-- Header -->
+        <header class="bg-white shadow-lg border-b-4 border-blue-500 sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <div class="flex items-center space-x-3">
+                        <button id="sidebarToggle" class="md:hidden p-2 rounded-lg hover:bg-gray-100">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </button>
+                        <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-lg">📚</span>
+                        </div>
+                        <h1 class="text-2xl font-bold text-gray-800">EduConnect</h1>
+                    </div>
+                    
+                    <!-- Professor Navigation -->
+                    <nav id="professorNav" class="hidden md:flex space-x-8">
+                        <button onclick="showSection('dashboard')" class="nav-btn text-blue-600 font-semibold border-b-2 border-blue-600 pb-1">Dashboard</button>
+                        <button onclick="showSection('turmas')" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Turmas</button>
+                        <button onclick="showSection('agenda')" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Agenda</button>
+                        <button onclick="showSection('notas')" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Notas</button>
+                        <button onclick="showSection('comunicados')" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Comunicados</button>
+                        <button onclick="showSection('relatorios')" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Relatórios</button>
+                    </nav>
+
+                    <!-- Student Navigation -->
+                    <nav id="studentNav" class="hidden md:flex space-x-8">
+                        <button onclick="showSection('dashboard-aluno')" class="nav-btn text-blue-600 font-semibold border-b-2 border-blue-600 pb-1">Início</button>
+                        <button onclick="showSection('minhas-turmas')" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Minhas Turmas</button>
+                        <button onclick="showSection('horarios')" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Horários</button>
+                        <button onclick="showSection('minhas-notas')" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Notas</button>
+                        <button onclick="showSection('atividades')" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Atividades</button>
+                        <button onclick="showSection('biblioteca')" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Biblioteca</button>
+                    </nav>
+
+                    <div class="flex items-center space-x-4">
+                        <button class="relative p-2 text-gray-600 hover:text-blue-600 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM9 7h6m0 10v-3M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M9 7H6a1 1 0 00-1 1v9a1 1 0 001 1h8a1 1 0 001-1V8a1 1 0 00-1-1z"></path>
+                            </svg>
+                            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+                        </button>
+                        <div class="flex items-center space-x-3">
+                            <span id="userName" class="text-sm text-gray-600"></span>
+                            <div id="userAvatar" class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-600 transition-colors">
+                                <span class="text-white text-sm font-semibold"></span>
+                            </div>
+                            <button onclick="logout()" class="text-sm text-gray-600 hover:text-red-600 transition-colors">Sair</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Mobile Sidebar -->
+        <div id="mobileSidebar" class="fixed inset-0 z-40 md:hidden sidebar-transition transform -translate-x-full">
+            <div class="fixed inset-0 bg-black opacity-50" onclick="closeMobileSidebar()"></div>
+            <div class="relative flex flex-col w-64 h-full bg-white shadow-xl">
+                <div class="p-6 border-b">
+                    <h2 class="text-xl font-bold text-gray-800">Menu</h2>
+                </div>
+                <nav id="mobileNavContent" class="flex-1 p-4 space-y-2">
+                    <!-- Content will be populated by JavaScript -->
+                </nav>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Professor Dashboard -->
+            <div id="dashboard" class="section fade-in">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Dashboard do Professor</h2>
+                    <p class="text-gray-600">Visão geral do sistema escolar</p>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Total de Alunos</p>
+                                <p class="text-3xl font-bold text-blue-600">342</p>
+                                <p class="text-sm text-green-600">↗ +12 este mês</p>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <span class="text-2xl">👥</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Turmas Ativas</p>
+                                <p class="text-3xl font-bold text-green-600">12</p>
+                                <p class="text-sm text-blue-600">100% ocupação</p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                <span class="text-2xl">🏫</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Eventos Hoje</p>
+                                <p class="text-3xl font-bold text-purple-600">5</p>
+                                <p class="text-sm text-purple-600">3 pendentes</p>
+                            </div>
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <span class="text-2xl">📅</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Média Geral</p>
+                                <p class="text-3xl font-bold text-orange-600">8.7</p>
+                                <p class="text-sm text-green-600">↗ +0.3 pontos</p>
+                            </div>
+                            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                                <span class="text-2xl">📊</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts and Quick Actions -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                    <!-- Performance Chart -->
+                    <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-6">Desempenho por Turma</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-gray-600 w-20">9º A</span>
+                                <div class="flex-1 mx-4 bg-gray-200 rounded-full h-3">
+                                    <div class="bg-green-500 h-3 rounded-full chart-bar" style="width: 88%"></div>
+                                </div>
+                                <span class="text-sm font-semibold text-green-600">8.8</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-gray-600 w-20">8º B</span>
+                                <div class="flex-1 mx-4 bg-gray-200 rounded-full h-3">
+                                    <div class="bg-blue-500 h-3 rounded-full chart-bar" style="width: 82%"></div>
+                                </div>
+                                <span class="text-sm font-semibold text-blue-600">8.2</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm font-medium text-gray-600 w-20">7º C</span>
+                                <div class="flex-1 mx-4 bg-gray-200 rounded-full h-3">
+                                    <div class="bg-yellow-500 h-3 rounded-full chart-bar" style="width: 75%"></div>
+                                </div>
+                                <span class="text-sm font-semibold text-yellow-600">7.5</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Ações Rápidas</h3>
+                        <div class="space-y-3">
+                            <button onclick="openModal('novaAulaModal')" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                                📝 Nova Aula
+                            </button>
+                            <button onclick="openModal('novaTurmaModal')" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                                👥 Nova Turma
+                            </button>
+                            <button onclick="openModal('novoEventoModal')" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                                📅 Novo Evento
+                            </button>
+                            <button onclick="showSection('comunicados')" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                                📢 Comunicado
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student Dashboard -->
+            <div id="dashboard-aluno" class="section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Meu Painel</h2>
+                    <p class="text-gray-600">Bem-vindo de volta, João!</p>
+                </div>
+
+                <!-- Student Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Média Geral</p>
+                                <p class="text-3xl font-bold text-green-600">8.5</p>
+                                <p class="text-sm text-green-600">↗ Melhorando</p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                <span class="text-2xl">📊</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Frequência</p>
+                                <p class="text-3xl font-bold text-blue-600">95%</p>
+                                <p class="text-sm text-blue-600">Excelente</p>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <span class="text-2xl">✅</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Atividades</p>
+                                <p class="text-3xl font-bold text-orange-600">3</p>
+                                <p class="text-sm text-orange-600">Pendentes</p>
+                            </div>
+                            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                                <span class="text-2xl">📝</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Próxima Prova</p>
+                                <p class="text-3xl font-bold text-purple-600">2</p>
+                                <p class="text-sm text-purple-600">dias</p>
+                            </div>
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <span class="text-2xl">⏰</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Content Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Today's Schedule -->
+                    <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-6">Horário de Hoje</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                                <div class="flex items-center space-x-4">
+                                    <div class="text-center">
+                                        <p class="text-sm font-semibold text-blue-600">08:00</p>
+                                        <p class="text-xs text-gray-500">08:50</p>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-gray-800">Matemática</p>
+                                        <p class="text-sm text-gray-600">Prof. Maria Silva • Sala 201</p>
+                                    </div>
+                                </div>
+                                <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">Agora</span>
+                            </div>
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border-l-4 border-gray-300">
+                                <div class="flex items-center space-x-4">
+                                    <div class="text-center">
+                                        <p class="text-sm font-semibold text-gray-600">09:00</p>
+                                        <p class="text-xs text-gray-500">09:50</p>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-gray-800">Física</p>
+                                        <p class="text-sm text-gray-600">Prof. João Santos • Lab 105</p>
+                                    </div>
+                                </div>
+                                <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">Próxima</span>
+                            </div>
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border-l-4 border-gray-300">
+                                <div class="flex items-center space-x-4">
+                                    <div class="text-center">
+                                        <p class="text-sm font-semibold text-gray-600">10:10</p>
+                                        <p class="text-xs text-gray-500">11:00</p>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-gray-800">Português</p>
+                                        <p class="text-sm text-gray-600">Prof. Ana Costa • Sala 203</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions & Notifications -->
+                    <div class="space-y-6">
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Ações Rápidas</h3>
+                            <div class="space-y-3">
+                                <button onclick="showSection('minhas-notas')" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm transition-colors">
+                                    📊 Ver Notas
+                                </button>
+                                <button onclick="showSection('atividades')" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-sm transition-colors">
+                                    📝 Atividades
+                                </button>
+                                <button onclick="showSection('biblioteca')" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg text-sm transition-colors">
+                                    📚 Biblioteca
+                                </button>
+                                <button onclick="showSection('horarios')" class="w-full bg-orange-600 hover:bg-orange-700 text-white py-2 rounded-lg text-sm transition-colors">
+                                    ⏰ Horários
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Notificações</h3>
+                            <div class="space-y-3">
+                                <div class="p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg">
+                                    <p class="text-sm font-medium text-gray-800">Nova atividade</p>
+                                    <p class="text-xs text-gray-600">Matemática - Lista de exercícios</p>
+                                </div>
+                                <div class="p-3 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
+                                    <p class="text-sm font-medium text-gray-800">Prova marcada</p>
+                                    <p class="text-xs text-gray-600">Física - 15/12 às 14h</p>
+                                </div>
+                                <div class="p-3 bg-green-50 border-l-4 border-green-400 rounded-r-lg">
+                                    <p class="text-sm font-medium text-gray-800">Nota lançada</p>
+                                    <p class="text-xs text-gray-600">Português - Redação: 9.0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student Turmas -->
+            <div id="minhas-turmas" class="section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Minhas Turmas</h2>
+                    <p class="text-gray-600">Disciplinas que você está cursando</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold text-gray-800">Matemática</h3>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Ativa</span>
+                        </div>
+                        <div class="space-y-3 mb-6">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Professor:</span>
+                                <span class="font-semibold">Maria Silva</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Turma:</span>
+                                <span class="font-semibold">9º Ano A</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Sala:</span>
+                                <span class="font-semibold">201</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Sua Média:</span>
+                                <span class="font-semibold text-green-600">8.5</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Frequência:</span>
+                                <span class="font-semibold text-blue-600">95%</span>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm transition-colors">
+                                Ver Detalhes
+                            </button>
+                            <button class="px-4 py-2 border border-gray-300 hover:bg-gray-50 rounded-lg text-sm transition-colors">
+                                Material
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold text-gray-800">Física</h3>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Ativa</span>
+                        </div>
+                        <div class="space-y-3 mb-6">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Professor:</span>
+                                <span class="font-semibold">João Santos</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Turma:</span>
+                                <span class="font-semibold">9º Ano A</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Sala:</span>
+                                <span class="font-semibold">Lab 105</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Sua Média:</span>
+                                <span class="font-semibold text-blue-600">8.2</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Frequência:</span>
+                                <span class="font-semibold text-green-600">98%</span>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm transition-colors">
+                                Ver Detalhes
+                            </button>
+                            <button class="px-4 py-2 border border-gray-300 hover:bg-gray-50 rounded-lg text-sm transition-colors">
+                                Material
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-semibold text-gray-800">Português</h3>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Ativa</span>
+                        </div>
+                        <div class="space-y-3 mb-6">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Professor:</span>
+                                <span class="font-semibold">Ana Costa</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Turma:</span>
+                                <span class="font-semibold">9º Ano A</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Sala:</span>
+                                <span class="font-semibold">203</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Sua Média:</span>
+                                <span class="font-semibold text-purple-600">9.0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Frequência:</span>
+                                <span class="font-semibold text-green-600">92%</span>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm transition-colors">
+                                Ver Detalhes
+                            </button>
+                            <button class="px-4 py-2 border border-gray-300 hover:bg-gray-50 rounded-lg text-sm transition-colors">
+                                Material
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student Grades -->
+            <div id="minhas-notas" class="section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Minhas Notas</h2>
+                    <p class="text-gray-600">Acompanhe seu desempenho acadêmico</p>
+                </div>
+
+                <!-- Grade Summary -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Média Geral</h3>
+                        <div class="text-center">
+                            <div class="text-4xl font-bold text-green-600 mb-2">8.5</div>
+                            <div class="w-full bg-gray-200 rounded-full h-3">
+                                <div class="bg-green-500 h-3 rounded-full" style="width: 85%"></div>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-2">Bom desempenho!</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Melhor Disciplina</h3>
+                        <div class="text-center">
+                            <div class="text-2xl mb-2">📝</div>
+                            <div class="text-xl font-bold text-purple-600">Português</div>
+                            <div class="text-2xl font-bold text-purple-600">9.0</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Precisa Melhorar</h3>
+                        <div class="text-center">
+                            <div class="text-2xl mb-2">⚗️</div>
+                            <div class="text-xl font-bold text-orange-600">Física</div>
+                            <div class="text-2xl font-bold text-orange-600">8.2</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Grades -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-xl font-semibold text-gray-800">Notas Detalhadas - 4º Bimestre</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Disciplina</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prova 1</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prova 2</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trabalho</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Participação</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Média</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <span class="text-2xl mr-3">📐</span>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900">Matemática</p>
+                                                <p class="text-sm text-gray-500">Prof. Maria Silva</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8.0</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8.5</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">9.0</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8.8</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">8.5</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full">Aprovado</span>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <span class="text-2xl mr-3">⚗️</span>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900">Física</p>
+                                                <p class="text-sm text-gray-500">Prof. João Santos</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">7.5</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8.0</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8.5</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8.8</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-600">8.2</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded-full">Aprovado</span>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <span class="text-2xl mr-3">📝</span>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900">Português</p>
+                                                <p class="text-sm text-gray-500">Prof. Ana Costa</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">9.0</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">9.2</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8.8</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">9.0</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-purple-600">9.0</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 text-xs font-semibold bg-purple-100 text-purple-800 rounded-full">Excelente</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student Activities -->
+            <div id="atividades" class="section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Atividades</h2>
+                    <p class="text-gray-600">Suas tarefas e trabalhos</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 space-y-6">
+                        <!-- Pending Activities -->
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Atividades Pendentes</h3>
+                            <div class="space-y-4">
+                                <div class="p-4 border-l-4 border-red-500 bg-red-50 rounded-r-lg">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-semibold text-gray-800">Lista de Exercícios - Matemática</h4>
+                                            <p class="text-sm text-gray-600">Prof. Maria Silva</p>
+                                            <p class="text-sm text-red-600 mt-2">Prazo: Hoje, 23:59</p>
+                                        </div>
+                                        <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">Urgente</span>
+                                    </div>
+                                    <div class="mt-4 flex space-x-2">
+                                        <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                                            Fazer Agora
+                                        </button>
+                                        <button class="border border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-lg text-sm transition-colors">
+                                            Ver Detalhes
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="p-4 border-l-4 border-yellow-500 bg-yellow-50 rounded-r-lg">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-semibold text-gray-800">Relatório de Física</h4>
+                                            <p class="text-sm text-gray-600">Prof. João Santos</p>
+                                            <p class="text-sm text-yellow-600 mt-2">Prazo: 18/12, 23:59</p>
+                                        </div>
+                                        <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">3 dias</span>
+                                    </div>
+                                    <div class="mt-4 flex space-x-2">
+                                        <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                                            Começar
+                                        </button>
+                                        <button class="border border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-lg text-sm transition-colors">
+                                            Ver Detalhes
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="p-4 border-l-4 border-blue-500 bg-blue-50 rounded-r-lg">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-semibold text-gray-800">Redação - Português</h4>
+                                            <p class="text-sm text-gray-600">Prof. Ana Costa</p>
+                                            <p class="text-sm text-blue-600 mt-2">Prazo: 20/12, 23:59</p>
+                                        </div>
+                                        <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">5 dias</span>
+                                    </div>
+                                    <div class="mt-4 flex space-x-2">
+                                        <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                                            Começar
+                                        </button>
+                                        <button class="border border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-lg text-sm transition-colors">
+                                            Ver Detalhes
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Completed Activities -->
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Atividades Concluídas</h3>
+                            <div class="space-y-4">
+                                <div class="p-4 border-l-4 border-green-500 bg-green-50 rounded-r-lg">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-semibold text-gray-800">Exercícios de Português</h4>
+                                            <p class="text-sm text-gray-600">Prof. Ana Costa</p>
+                                            <p class="text-sm text-green-600 mt-2">Entregue em: 10/12</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Concluído</span>
+                                            <p class="text-sm font-semibold text-green-600 mt-1">Nota: 9.0</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-4 border-l-4 border-green-500 bg-green-50 rounded-r-lg">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-semibold text-gray-800">Laboratório de Física</h4>
+                                            <p class="text-sm text-gray-600">Prof. João Santos</p>
+                                            <p class="text-sm text-green-600 mt-2">Entregue em: 08/12</p>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Concluído</span>
+                                            <p class="text-sm font-semibold text-green-600 mt-1">Nota: 8.5</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Activity Summary -->
+                    <div class="space-y-6">
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Resumo</h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Pendentes</span>
+                                    <span class="font-semibold text-red-600">3</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Concluídas</span>
+                                    <span class="font-semibold text-green-600">12</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Média das Notas</span>
+                                    <span class="font-semibold text-blue-600">8.7</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Taxa de Entrega</span>
+                                    <span class="font-semibold text-purple-600">95%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-4">Próximos Prazos</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-800">Lista Matemática</p>
+                                        <p class="text-xs text-gray-600">Hoje</p>
+                                    </div>
+                                    <span class="w-3 h-3 bg-red-500 rounded-full"></span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-800">Relatório Física</p>
+                                        <p class="text-xs text-gray-600">3 dias</p>
+                                    </div>
+                                    <span class="w-3 h-3 bg-yellow-500 rounded-full"></span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-800">Redação</p>
+                                        <p class="text-xs text-gray-600">5 dias</p>
+                                    </div>
+                                    <span class="w-3 h-3 bg-blue-500 rounded-full"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Include all other professor sections (turmas, agenda, notas, comunicados, relatorios) from previous code -->
+            <!-- For brevity, I'm including just the structure. The full sections would be identical to the previous version -->
+            
+            <div id="turmas" class="section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Turmas</h2>
+                    <p class="text-gray-600">Gerencie suas turmas e alunos</p>
+                </div>
+                <!-- Professor turmas content here -->
+            </div>
+
+            <div id="agenda" class="section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Agenda</h2>
+                    <p class="text-gray-600">Gerencie eventos e compromissos</p>
+                </div>
+                <!-- Professor agenda content here -->
+            </div>
+
+            <div id="notas" class="section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Notas e Avaliações</h2>
+                    <p class="text-gray-600">Gerencie notas e acompanhe o desempenho</p>
+                </div>
+                <!-- Professor notas content here -->
+            </div>
+
+            <div id="comunicados" class="section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Comunicados</h2>
+                    <p class="text-gray-600">Envie e gerencie comunicados</p>
+                </div>
+                <!-- Professor comunicados content here -->
+            </div>
+
+            <div id="relatorios" class="section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Relatórios</h2>
+                    <p class="text-gray-600">Análises e relatórios detalhados</p>
+                </div>
+                <!-- Professor relatorios content here -->
+            </div>
+
+            <!-- Student-only sections -->
+            <div id="horarios" class="section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Meus Horários</h2>
+                    <p class="text-gray-600">Grade de horários das suas aulas</p>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-xl font-semibold text-gray-800">Grade Semanal - 9º Ano A</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Horário</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Segunda</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Terça</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quarta</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quinta</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sexta</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">08:00 - 08:50</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <div class="p-2 bg-blue-100 rounded text-center">
+                                            <p class="font-semibold text-blue-800">Matemática</p>
+                                            <p class="text-xs text-blue-600">Sala 201</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <div class="p-2 bg-green-100 rounded text-center">
+                                            <p class="font-semibold text-green-800">Física</p>
+                                            <p class="text-xs text-green-600">Lab 105</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <div class="p-2 bg-purple-100 rounded text-center">
+                                            <p class="font-semibold text-purple-800">Português</p>
+                                            <p class="text-xs text-purple-600">Sala 203</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <div class="p-2 bg-yellow-100 rounded text-center">
+                                            <p class="font-semibold text-yellow-800">História</p>
+                                            <p class="text-xs text-yellow-600">Sala 104</p>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <div class="p-2 bg-red-100 rounded text-center">
+                                            <p class="font-semibold text-red-800">Ed. Física</p>
+                                            <p class="text-xs text-red-600">Quadra</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- More time slots would go here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="biblioteca" class="section hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Biblioteca Digital</h2>
+                    <p class="text-gray-600">Acesse materiais de estudo e recursos</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                        <div class="text-center mb-4">
+                            <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <span class="text-3xl">📐</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-800">Matemática</h3>
+                        </div>
+                        <div class="space-y-2 mb-4">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Livros:</span>
+                                <span class="font-semibold">12</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Exercícios:</span>
+                                <span class="font-semibold">45</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Vídeos:</span>
+                                <span class="font-semibold">23</span>
+                            </div>
+                        </div>
+                        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors">
+                            Acessar Material
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                        <div class="text-center mb-4">
+                            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <span class="text-3xl">⚗️</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-800">Física</h3>
+                        </div>
+                        <div class="space-y-2 mb-4">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Livros:</span>
+                                <span class="font-semibold">8</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Exercícios:</span>
+                                <span class="font-semibold">32</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Vídeos:</span>
+                                <span class="font-semibold">18</span>
+                            </div>
+                        </div>
+                        <button class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg transition-colors">
+                            Acessar Material
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                        <div class="text-center mb-4">
+                            <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <span class="text-3xl">📝</span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-800">Português</h3>
+                        </div>
+                        <div class="space-y-2 mb-4">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Livros:</span>
+                                <span class="font-semibold">15</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Exercícios:</span>
+                                <span class="font-semibold">38</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Vídeos:</span>
+                                <span class="font-semibold">12</span>
+                            </div>
+                        </div>
+                        <button class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg transition-colors">
+                            Acessar Material
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="novaTurmaModal" class="modal">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800">Nova Turma</h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nome da Turma</label>
+                    <input type="text" placeholder="Ex: 9º Ano A" class="w-full border border-gray-300 rounded-lg px-4 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Disciplina</label>
+                    <select class="w-full border border-gray-300 rounded-lg px-4 py-2">
+                        <option>Matemática</option>
+                        <option>Português</option>
+                        <option>Física</option>
+                        <option>Química</option>
+                    </select>
+                </div>
+            </div>
+            <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
+                <button onclick="closeModal('novaTurmaModal')" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Cancelar
+                </button>
+                <button onclick="criarTurma()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    Criar Turma
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification hidden">
+        <div class="bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg">
+            <div class="flex items-center">
+                <span class="mr-2">✓</span>
+                <span id="notificationText">Ação realizada com sucesso!</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        // Login function
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const userType = document.getElementById('userType').value;
+
+            // Simple validation for demo
+            if (email && password) {
+                currentUser = {
+                    type: userType,
+                    name: userType === 'professor' ? 'Prof. Maria Silva' : 'João Santos',
+                    email: email,
+                    initials: userType === 'professor' ? 'MS' : 'JS'
+                };
+
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                
+                setupUserInterface();
+                showNotification(`Bem-vindo, ${currentUser.name}!`);
+            } else {
+                alert('Por favor, preencha todos os campos');
+            }
+        }
+
+        // Logout function
+        function logout() {
+            currentUser = null;
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+            
+            // Clear form
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+
+        // Setup user interface based on user type
+        function setupUserInterface() {
+            const userName = document.getElementById('userName');
+            const userAvatar = document.getElementById('userAvatar').querySelector('span');
+            const professorNav = document.getElementById('professorNav');
+            const studentNav = document.getElementById('studentNav');
+            const mobileNavContent = document.getElementById('mobileNavContent');
+
+            userName.textContent = currentUser.name;
+            userAvatar.textContent = currentUser.initials;
+
+            if (currentUser.type === 'professor') {
+                professorNav.classList.remove('hidden');
+                studentNav.classList.add('hidden');
+                showSection('dashboard');
+                
+                // Setup mobile nav for professor
+                mobileNavContent.innerHTML = `
+                    <button onclick="showSection('dashboard'); closeMobileSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-blue-50 text-gray-700">Dashboard</button>
+                    <button onclick="showSection('turmas'); closeMobileSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-blue-50 text-gray-700">Turmas</button>
+                    <button onclick="showSection('agenda'); closeMobileSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-blue-50 text-gray-700">Agenda</button>
+                    <button onclick="showSection('notas'); closeMobileSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-blue-50 text-gray-700">Notas</button>
+                    <button onclick="showSection('comunicados'); closeMobileSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-blue-50 text-gray-700">Comunicados</button>
+                    <button onclick="showSection('relatorios'); closeMobileSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-blue-50 text-gray-700">Relatórios</button>
+                `;
+            } else {
+                professorNav.classList.add('hidden');
+                studentNav.classList.remove('hidden');
+                showSection('dashboard-aluno');
+                
+                // Setup mobile nav for student
+                mobileNavContent.innerHTML = `
+                    <button onclick="showSection('dashboard-aluno'); closeMobileSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-blue-50 text-gray-700">Início</button>
+                    <button onclick="showSection('minhas-turmas'); closeMobileSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-blue-50 text-gray-700">Minhas Turmas</button>
+                    <button onclick="showSection('horarios'); closeMobileSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-blue-50 text-gray-700">Horários</button>
+                    <button onclick="showSection('minhas-notas'); closeMobileSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-blue-50 text-gray-700">Notas</button>
+                    <button onclick="showSection('atividades'); closeMobileSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-blue-50 text-gray-700">Atividades</button>
+                    <button onclick="showSection('biblioteca'); closeMobileSidebar();" class="w-full text-left p-3 rounded-lg hover:bg-blue-50 text-gray-700">Biblioteca</button>
+                `;
+            }
+        }
+
+        // Navigation
+        function showSection(sectionName) {
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => {
+                section.classList.add('hidden');
+                section.classList.remove('fade-in');
+            });
+
+            const targetSection = document.getElementById(sectionName);
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+                setTimeout(() => {
+                    targetSection.classList.add('fade-in');
+                }, 10);
+            }
+
+            // Update navigation buttons
+            const navButtons = document.querySelectorAll('.nav-btn');
+            navButtons.forEach(btn => {
+                btn.classList.remove('text-blue-600', 'font-semibold', 'border-b-2', 'border-blue-600', 'pb-1');
+                btn.classList.add('text-gray-600');
+            });
+
+            if (event && event.target) {
+                event.target.classList.remove('text-gray-600');
+                event.target.classList.add('text-blue-600', 'font-semibold', 'border-b-2', 'border-blue-600', 'pb-1');
+            }
+        }
+
+        // Mobile Sidebar
+        document.getElementById('sidebarToggle').addEventListener('click', function() {
+            document.getElementById('mobileSidebar').classList.remove('-translate-x-full');
+        });
+
+        function closeMobileSidebar() {
+            document.getElementById('mobileSidebar').classList.add('-translate-x-full');
+        }
+
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        // Notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            
+            notificationText.textContent = message;
+            notification.classList.remove('hidden');
+            
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 3000);
+        }
+
+        // CRUD Functions
+        function criarTurma() {
+            closeModal('novaTurmaModal');
+            showNotification('Turma criada com sucesso!');
+        }
+
+        // Close modals when clicking outside
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('show');
+            }
+        });
+
+        // Initialize login screen
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-fill demo credentials
+            document.getElementById('loginEmail').value = 'professor@escola.com';
+            document.getElementById('loginPassword').value = 'senha123';
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97461917f7916d55',t:'MTc1NjA3MjU2OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+
+<script>
+    function toggleForm(formId) {
+        document.getElementById('loginForm').classList.add('hidden');
+        document.getElementById('registerForm').classList.add('hidden');
+        document.getElementById(formId).classList.remove('hidden');
+    }
+
+    async function login(event) {
+        event.preventDefault();  // Impede envio padrão do formulário
+
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+        const user_type = document.getElementById("loginUserType").value;
+
+        try {
+            const res = await fetch('/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email, password, user_type })
+            });
+
+            const data = await res.json();
+            alert(data.message);
+
+            if (data.success) {
+                document.getElementById('authScreen').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+
+                // Preencher informações de usuário (opcional)
+                document.getElementById('userName').textContent = email;
+                document.querySelector('#userAvatar span').textContent = email.charAt(0).toUpperCase();
+
+                // Mostrar navegação com base no tipo de usuário
+                if (user_type === 'professor') {
+                    document.getElementById('professorNav').classList.remove('hidden');
+                } else if (user_type === 'aluno') {
+                    document.getElementById('studentNav').classList.remove('hidden');
+                }
+            }
+
+        } catch (error) {
+            alert("Erro no login: " + error.message);
+        }
+    }
+
+    async function register(event) {
+        event.preventDefault();
+
+        const name = document.getElementById("registerName").value;
+        const email = document.getElementById("registerEmail").value;
+        const password = document.getElementById("registerPassword").value;
+        const user_type = document.getElementById("registerUserType").value;
+
+        try {
+            const res = await fetch('/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ name, email, password, user_type })
+            });
+
+            const data = await res.json();
+            alert(data.message);
+
+            if (data.success) {
+                toggleForm('loginForm');
+            }
+
+        } catch (error) {
+            alert("Erro no cadastro: " + error.message);
+        }
+    }
+
+    function logout() {
+        // Reset visual
+        document.getElementById('authScreen').classList.remove('hidden');
+        document.getElementById('mainApp').classList.add('hidden');
+        document.getElementById('loginForm').reset();
+        document.getElementById('registerForm').reset();
+        document.getElementById('professorNav').classList.add('hidden');
+        document.getElementById('studentNav').classList.add('hidden');
+    }
+</script>
+</body>
+</html>
