@@ -59,6 +59,44 @@ def login():
     else:
         return jsonify({"success": False, "message": "Credenciais inválidas."})
 
+@app.route('/listar_turmas', methods=['GET'])
+def listar_turmas():
+    email = request.args.get('email')
+
+    if not email:
+        return jsonify({"success": False, "message": "Email do professor não fornecido."}), 400
+
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cursor.execute(
+        "SELECT nome_turma, serie, disciplina FROM turmas WHERE professor_email = %s",
+        (email,)
+    )
+    turmas = cursor.fetchall()
+    return jsonify({"success": True, "turmas": turmas})
+
+
+@app.route('/criar_turma', methods=['POST'])
+def criar_turma():
+    data = request.json
+    nome_turma = data.get('nome_turma')
+    serie = data.get('serie')
+    disciplina = data.get('disciplina')
+    professor_email = data.get('professor_email')
+
+    if not all([nome_turma, serie, disciplina, professor_email]):
+        return jsonify({"success": False, "message": "Campos obrigatórios faltando."})
+
+    cursor = mysql.connection.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO turmas (nome_turma, serie, disciplina, professor_email)
+            VALUES (%s, %s, %s, %s)
+        """, (nome_turma, serie, disciplina, professor_email))
+        mysql.connection.commit()
+        return jsonify({"success": True, "message": "Turma criada com sucesso!"})
+    except Exception as e:
+        return jsonify({"success": False, "message": f"Erro ao criar turma: {str(e)}"})
+
 
 if __name__ == '__main__':
     app.run(debug=True)

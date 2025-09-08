@@ -296,9 +296,10 @@ async function register(event) {
                             <button onclick="openModal('novaAulaModal')" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-colors">
                                 📝 Nova Aula
                             </button>
-                            <button onclick="openModal('novaTurmaModal')" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                            <button id="novaTurmaButton" onclick="openModal('novaTurmaModal')" class="hidden w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition-colors">
                                 👥 Nova Turma
                             </button>
+
                             <button onclick="openModal('novoEventoModal')" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold transition-colors">
                                 📅 Novo Evento
                             </button>
@@ -864,6 +865,8 @@ async function register(event) {
             <!-- For brevity, I'm including just the structure. The full sections would be identical to the previous version -->
             
             <div id="turmas" class="section hidden">
+
+                <div id="listaTurmas" class="space-y-4"></div>
                 <div class="mb-8">
                     <h2 class="text-3xl font-bold text-gray-800 mb-2">Turmas</h2>
                     <p class="text-gray-600">Gerencie suas turmas e alunos</p>
@@ -1056,37 +1059,41 @@ async function register(event) {
         </main>
     </div>
 
-    <!-- Modals -->
-    <div id="novaTurmaModal" class="modal">
-        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
-            <div class="p-6 border-b border-gray-200">
-                <h3 class="text-xl font-semibold text-gray-800">Nova Turma</h3>
+   <!-- MODAL NOVA TURMA -->
+<div id="novaTurmaModal" class="modal">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-xl font-semibold text-gray-800">Nova Turma</h3>
+        </div>
+        <div class="p-6 space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Nome da Turma</label>
+                <input id="nomeTurma" type="text" placeholder="Ex: 9º Ano A" class="w-full border border-gray-300 rounded-lg px-4 py-2">
             </div>
-            <div class="p-6 space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Nome da Turma</label>
-                    <input type="text" placeholder="Ex: 9º Ano A" class="w-full border border-gray-300 rounded-lg px-4 py-2">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Disciplina</label>
-                    <select class="w-full border border-gray-300 rounded-lg px-4 py-2">
-                        <option>Matemática</option>
-                        <option>Português</option>
-                        <option>Física</option>
-                        <option>Química</option>
-                    </select>
-                </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Série</label>
+                <input id="serieTurma" type="text" placeholder="Ex: 9º ano" class="w-full border border-gray-300 rounded-lg px-4 py-2">
             </div>
-            <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
-                <button onclick="closeModal('novaTurmaModal')" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                    Cancelar
-                </button>
-                <button onclick="criarTurma()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                    Criar Turma
-                </button>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Disciplina</label>
+                <select id="disciplinaTurma" class="w-full border border-gray-300 rounded-lg px-4 py-2">
+                    <option>Matemática</option>
+                    <option>Português</option>
+                    <option>Física</option>
+                    <option>Química</option>
+                </select>
             </div>
         </div>
+        <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
+            <button onclick="closeModal('novaTurmaModal')" class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                Cancelar
+            </button>
+            <button onclick="criarTurma()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                Criar Turma
+            </button>
+        </div>
     </div>
+</div>
 
     <!-- Notification -->
     <div id="notification" class="notification hidden">
@@ -1274,6 +1281,11 @@ async function register(event) {
         const email = document.getElementById("loginEmail").value;
         const password = document.getElementById("loginPassword").value;
         const user_type = document.getElementById("loginUserType").value;
+        if (user_type === "professor") {
+            document.querySelector('[onclick="openModal(\'novaTurmaModal\')"]').classList.remove('hidden');
+        } else {
+            document.querySelector('[onclick="openModal(\'novaTurmaModal\')"]').classList.add('hidden');
+}
 
         try {
             const res = await fetch('/login', {
@@ -1296,10 +1308,13 @@ async function register(event) {
                 // Mostrar navegação com base no tipo de usuário
                 if (user_type === 'professor') {
                     document.getElementById('professorNav').classList.remove('hidden');
-                } else if (user_type === 'aluno') {
-                    document.getElementById('studentNav').classList.remove('hidden');
-                }
-            }
+        document.getElementById('novaTurmaButton').classList.remove('hidden');
+        carregarTurmas();
+    } else if (user_type === 'aluno') {
+        document.getElementById('studentNav').classList.remove('hidden');
+    }
+}
+
 
         } catch (error) {
             alert("Erro no login: " + error.message);
@@ -1343,5 +1358,67 @@ async function register(event) {
         document.getElementById('studentNav').classList.add('hidden');
     }
 </script>
+<script>
+async function criarTurma() {
+    const nomeTurma = document.getElementById("nomeTurma").value;
+    const serie = document.getElementById("serieTurma").value;
+    const disciplina = document.getElementById("disciplinaTurma").value;
+
+    if (!currentUserEmail) {
+        alert("Usuário não identificado.");
+        return;
+    }
+
+    const res = await fetch('/criar_turma', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            nome_turma: nomeTurma,
+            serie: serie,
+            disciplina: disciplina,
+            professor_email: currentUserEmail
+        })
+    });
+
+    const data = await res.json();
+    alert(data.message);
+    if (data.success) {
+        closeModal('novaTurmaModal');
+        loadTurmas();
+    }
+}
+
+</script>
+<script>
+async function carregarTurmas() {
+    if (!currentUserEmail) {
+        console.error("Email do usuário não disponível");
+        return;
+    }
+
+    const res = await fetch(`/listar_turmas?email=${encodeURIComponent(currentUserEmail)}`);
+    const data = await res.json();
+
+    const listaTurmas = document.getElementById("listaTurmas");
+    listaTurmas.innerHTML = "";
+
+    if (data.success && data.turmas.length > 0) {
+        data.turmas.forEach(turma => {
+            const div = document.createElement("div");
+            div.className = "bg-white rounded-xl shadow-md p-6";
+            div.innerHTML = `
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">${turma.nome_turma}</h3>
+                <p><strong>Série:</strong> ${turma.serie}</p>
+                <p><strong>Disciplina:</strong> ${turma.disciplina}</p>
+            `;
+            listaTurmas.appendChild(div);
+        });
+    } else {
+        listaTurmas.innerHTML = "<p class='text-gray-500'>Nenhuma turma encontrada.</p>";
+    }
+}
+
+</script>
+
 </body>
 </html>
