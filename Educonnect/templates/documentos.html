@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Documentos | EduConnect</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <header class="bg-white shadow-lg border-b-4 border-blue-500 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-lg">📚</span>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-800">EduConnect</h1>
+                </div>
+                <nav class="flex space-x-8">
+                    <a href="/home" class="text-gray-600 hover:text-blue-600 transition-colors">Início</a>
+                    <a href="/turmas" class="text-gray-600 hover:text-blue-600 transition-colors">Turmas</a>
+                    <a href="/atividades" class="text-gray-600 hover:text-blue-600 transition-colors">Atividades</a>
+                    <a href="/notas" class="text-gray-600 hover:text-blue-600 transition-colors">Notas</a>
+                    <a href="/horarios" class="text-gray-600 hover:text-blue-600 transition-colors">Horários</a>
+                    <a href="/biblioteca" class="text-gray-600 hover:text-blue-600 transition-colors">Biblioteca</a>
+                    <a href="/documentos" class="text-blue-600 font-semibold border-b-2 border-blue-600 pb-1">Documentos</a>
+                </nav>
+                <div class="flex items-center space-x-4">
+                    <span id="userName" class="text-sm text-gray-600"></span>
+                    <div id="userAvatar" class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-600 transition-colors">
+                        <span class="text-white text-sm font-semibold"></span>
+                    </div>
+                    <a href="/logout" class="text-sm text-gray-600 hover:text-red-600 transition-colors">Sair</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Conteúdo principal -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 mb-16">
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">📄 Meus Documentos</h2>
+            <p class="text-gray-600">Acesse e baixe seus documentos escolares</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Exemplo de documento -->
+            <div class="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">📌 Declaração de Matrícula</h3>
+                    <p class="text-sm text-gray-600">Documento atualizado com os dados do ano letivo atual.</p>
+                </div>
+                <a href="/documentos/matricula.pdf" class="mt-4 inline-block text-blue-600 font-medium hover:underline">📥 Baixar</a>
+            </div>
+
+
+
+            <div class="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between">
+    <div>
+        <h3 class="text-lg font-semibold text-gray-800 mb-2">🏥 Atestado de Falta</h3>
+        <p class="text-sm text-gray-600 mb-4">Requerimento para justificar faltas médicas.<br><br>
+        </p>
+
+
+        <!-- Botões lado a lado -->
+        <div class="flex items-center space-x-6">
+            <!-- Botão de download -->
+            <a href="/documentos/atestado-falta.pdf" class="text-blue-600 font-medium hover:underline">📥 Baixar modelo</a>
+
+            <!-- Formulário com input escondido -->
+            <form id="uploadForm" action="/upload/atestado-falta" method="POST" enctype="multipart/form-data">
+                <input
+                    type="file"
+                    id="fileInput"
+                    name="arquivo"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    required
+                    class="hidden"
+                    onchange="document.getElementById('uploadForm').submit();"
+                >
+                <button
+                    type="button"
+                    onclick="document.getElementById('fileInput').click();"
+                    class="text-blue-600 font-medium hover:underline"
+                >
+                    📤 Enviar Atestado
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+            <div class="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">⏰ Atestado de Presença</h3>
+                    <p class="text-sm text-gray-600">Confirmação de presença em aula ou evento escolar.</p>
+                </div>
+                <a href="/documentos/atestado-presenca.pdf" class="mt-4 inline-block text-blue-600 font-medium hover:underline">📥 Baixar</a>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-md p-6 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">📊 Boletim Escolar</h3>
+                    <p class="text-sm text-gray-600">Histórico de notas por bimestre e ano.</p>
+                </div>
+                <a href="/documentos/boletim.pdf" class="mt-4 inline-block text-blue-600 font-medium hover:underline">📥 Baixar</a>
+            </div>
+
+            <!-- Adicione mais documentos aqui conforme necessário -->
+        </div>
+    </main>
+
+    {% include '_chat_widget.html' %}
+    {% include 'notific.html' %}
+</body>
+</html>

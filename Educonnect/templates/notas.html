@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Notas | EduConnect</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <header class="bg-white shadow-lg border-b-4 border-blue-500 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-lg">📚</span>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-800">EduConnect</h1>
+                </div>
+                <nav class="flex space-x-8">
+                    <a href="/home" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Início</a>
+                    <a href="/turmas" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Turmas</a>
+                    <a href="/atividades" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Atividades</a>
+                    <a href="/notas" class="nav-btn text-blue-600 font-semibold border-b-2 border-blue-600 pb-1">Notas</a>
+                    <a href="/horarios" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Horários</a>
+                    <a href="/biblioteca" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Biblioteca</a>
+                                    <a href="/documentos" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Documentos</a>
+
+                </nav>
+                <div class="flex items-center space-x-4">
+                    <span id="userName" class="text-sm text-gray-600"></span>
+                    <div id="userAvatar" class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-600 transition-colors">
+                        <span class="text-white text-sm font-semibold"></span>
+                    </div>
+                    <a href="/logout" class="text-sm text-gray-600 hover:text-red-600 transition-colors">Sair</a>
+                </div>
+            </div>
+        </div>
+    </header>
+ <!-- Student Grades -->
+            <div id="minhas-notas" class="section">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Minhas Notas</h2>
+                    <p class="text-gray-600">Acompanhe seu desempenho acadêmico</p>
+                </div>
+
+                <!-- Grade Summary -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Média Geral</h3>
+                        <div class="text-center">
+                            <div class="text-4xl font-bold text-green-600 mb-2">8.5</div>
+                            <div class="w-full bg-gray-200 rounded-full h-3">
+                                <div class="bg-green-500 h-3 rounded-full" style="width: 85%"></div>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-2">Bom desempenho!</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Melhor Disciplina</h3>
+                        <div class="text-center">
+                            <div class="text-2xl mb-2">📝</div>
+                            <div class="text-xl font-bold text-purple-600">Português</div>
+                            <div class="text-2xl font-bold text-purple-600">9.0</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Precisa Melhorar</h3>
+                        <div class="text-center">
+                            <div class="text-2xl mb-2">⚗️</div>
+                            <div class="text-xl font-bold text-orange-600">Física</div>
+                            <div class="text-2xl font-bold text-orange-600">8.2</div>
+                        </div>
+                    </div>
+                </div>
+                 <!-- Detailed Grades -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="p-6 border-b border-gray-200">
+                        <h3 class="text-xl font-semibold text-gray-800">Notas Detalhadas - 4º Bimestre</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Disciplina</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prova 1</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prova 2</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trabalho</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Participação</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Média</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <span class="text-2xl mr-3">📐</span>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900">Matemática</p>
+                                                <p class="text-sm text-gray-500">Prof. Maria Silva</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8.0</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8.5</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">9.0</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8.8</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">8.5</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded-full">Aprovado</span>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <span class="text-2xl mr-3">⚗️</span>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900">Física</p>
+                                                <p class="text-sm text-gray-500">Prof. João Santos</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">7.5</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8.0</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8.5</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8.8</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-600">8.2</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded-full">Aprovado</span>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <span class="text-2xl mr-3">📝</span>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900">Português</p>
+                                                <p class="text-sm text-gray-500">Prof. Ana Costa</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">9.0</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">9.2</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">8.8</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">9.0</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-purple-600">9.0</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 py-1 text-xs font-semibold bg-purple-100 text-purple-800 rounded-full">Excelente</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+{% include '_chat_widget.html' %}
+{% include 'notific.html' %}

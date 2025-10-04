@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>chat | EduConnect</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        const express = require("express");
+        const http = require("http");
+        const { Server } = require("socket.io");
+
+        const app = express();
+        const server = http.createServer(app);
+        const io = new Server(server);
+
+        io.on("connection", (socket) => {
+            console.log("Usuário conectado:", socket.id);
+
+            socket.on("mensagem", (msg) => {
+                io.emit("mensagem", msg); // envia para todos
+            });
+
+            socket.on("disconnect", () => {
+                console.log("Usuário saiu:", socket.id);
+            });
+        });
+
+        server.listen(3000, () => {
+            console.log("Servidor rodando em http://localhost:3000");
+        });</script>
+</head>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <header class="bg-white shadow-lg border-b-4 border-blue-500 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-lg">📚</span>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-800">EduConnect</h1>
+                </div>
+                <nav class="flex space-x-8">
+                    <a href="/home" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Início</a>
+                    <a href="/turmas" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Turmas</a>
+                    <a href="/atividades" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Atividades</a>
+                    <a href="/notas" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Notas</a>
+                    <a href="/horarios" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Horários</a>
+                    <a href="/biblioteca" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Biblioteca</a>
+                    <a href="/documentos" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Documentos</a>
+
+                </nav>
+                <div class="flex items-center space-x-4">
+                    <span id="userName" class="text-sm text-gray-600"></span>
+                    <div id="userAvatar" class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-600 transition-colors">
+                        <span class="text-white text-sm font-semibold"></span>
+                    </div>
+                    <a href="/logout" class="text-sm text-gray-600 hover:text-red-600 transition-colors">Sair</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Conteúdo do chat -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-0">
+                <!-- Users / Contatos -->
+                <aside class="border-r p-4 lg:col-span-1">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">Contatos</h2>
+                    <div class="space-y-2">
+                        <a href="/chat?chat_user=geral" class="block px-3 py-2 rounded-lg hover:bg-blue-50 {{ 'bg-blue-50' if chat_user == 'geral' else '' }}">📢 Geral</a>
+                        {% if usuarios %}
+                            {% for u in usuarios %}
+                                <a href="/chat?chat_user={{ u['email'] }}" class="block px-3 py-2 rounded-lg hover:bg-blue-50 {{ 'bg-blue-50' if chat_user == u['email'] else '' }}">👤 {{ u['nome'] }}</a>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-sm text-gray-500">Nenhum usuário encontrado.</p>
+                        {% endif %}
+                    </div>
+                </aside>
+
+                <!-- Chat área -->
+                <section class="p-6 lg:col-span-2 flex flex-col h-[60vh]">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-semibold text-gray-800">Chat — {{ 'Geral' if chat_user == 'geral' else chat_user }}</h3>
+                        <span class="text-sm text-gray-500">Mensagens</span>
+                    </div>
+
+                    <div id="messagesContainer" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 rounded-lg">
+                        {% if mensagens %}
+                            {% for m in mensagens %}
+                                {% set remetente = m['remetente'] %}
+                                {% set texto = m['mensagem'] %}
+                                {% set data = m['data_envio'] %}
+                                <div class="flex {{ 'justify-end' if remetente == session.get('user_email') else 'justify-start' }}">
+                                    <div class="max-w-[70%] px-4 py-2 rounded-lg shadow-sm {{ 'bg-blue-600 text-white' if remetente == session.get('user_email') else 'bg-white text-gray-800' }}">
+                                        <div class="text-sm">{{ texto }}</div>
+                                        <div class="text-xs text-gray-400 mt-1">{{ data }}</div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-center text-gray-500">Nenhuma mensagem ainda. Seja o primeiro a enviar 👍</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Formulário de envio -->
+                    <form method="POST" action="/chat" class="mt-4 flex items-center gap-3">
+                        <input type="hidden" name="destinatario" value="{{ 'professor' if chat_user == 'geral' else chat_user }}">
+                        <input name="mensagem" id="mensagemInput" type="text" required placeholder="Escreva sua mensagem..." class="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Enviar</button>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Scroll para o final ao carregar
+        const container = document.getElementById('messagesContainer');
+        if (container) container.scrollTop = container.scrollHeight;
+    </script>
+</body>
+
+</html>
+{% include 'notific.html' %}

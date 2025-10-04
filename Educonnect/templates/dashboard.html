@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduConnect - Sistema Escolar Completo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}"> -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-transition {
+            transition: transform 0.3s ease;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+        }
+
+        .chart-bar {
+            transition: height 0.5s ease;
+        }
+
+        .login-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+
+    .fade-in { animation: fadeIn 0.5s ease-in; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+
+
+    .tab-button.active {
+      border-bottom: 2px solid #6366f1;
+      color: #6366f1;
+    }
+    </style>
+</head>
+<script>
+    function toggleForm(formId) {
+        const loginForm = document.getElementById("loginForm");
+        const registerForm = document.getElementById("registerForm");
+        const tabLogin = document.getElementById("tabLogin");
+        const tabRegister = document.getElementById("tabRegister");
+
+        if (formId === 'loginForm') {
+            loginForm.classList.remove("hidden");
+            registerForm.classList.add("hidden");
+            tabLogin.classList.add("active");
+            tabRegister.classList.remove("active");
+        } else {
+            loginForm.classList.add("hidden");
+            registerForm.classList.remove("hidden");
+            tabLogin.classList.remove("active");
+            tabRegister.classList.add("active");
+        }
+    }
+
+    function showNotification(message, success = true) {
+        const notification = document.getElementById("notification");
+        const text = document.getElementById("notificationText");
+        text.innerText = message;
+        notification.classList.remove("hidden");
+        notification.querySelector('div').classList.toggle('bg-green-500', success);
+        notification.querySelector('div').classList.toggle('bg-red-500', !success);
+
+        setTimeout(() => {
+            notification.classList.add("hidden");
+        }, 3000);
+    }
+
+
+    async function login(e) {
+        e.preventDefault();
+
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+        const userType = document.getElementById("loginUserType").value;
+
+        try {
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password, user_type: userType })
+            });
+
+            const result = await response.json();
+            showNotification(result.message, result.success);
+
+            if (result.success) {
+                localStorage.setItem("userEmail", email);
+                localStorage.setItem("userType", userType);
+                localStorage.setItem("isLoggedIn", "true");
+
+                setTimeout(() => {
+                    window.location.href = "/home";
+                }, 1500);
+            }
+        } catch (err) {
+            showNotification("Erro na conexão com o servidor.", false);
+        }
+    }
+
+    async function register(e) {
+        e.preventDefault();
+
+        const name = document.getElementById("registerName").value;
+        const email = document.getElementById("registerEmail").value;
+        const password = document.getElementById("registerPassword").value;
+        const userType = document.getElementById("registerUserType").value;
+
+        try {
+            const response = await fetch("/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email, password, user_type: userType })
+            });
+
+            const result = await response.json();
+            showNotification(result.message, result.success);
+
+            if (result.success) {
+                toggleForm("loginForm"); // volta pro login
+            }
+        } catch (err) {
+            showNotification("Erro ao se cadastrar.", false);
+        }
+    }
+
+    // Set default tab
+    toggleForm("loginForm");
+</script>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    {% block notification %}
+    <!-- Notification -->
+    <div id="notification" class="notification hidden">
+        <div class="bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg">
+            <div class="flex items-center">
+                <span class="mr-2">✓</span>
+                <span id="notificationText">Ação realizada com sucesso!</span>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+
+    <!-- Main App -->
+    <div id="mainApp" class="block">
+        <!-- Header/Menu fixo para todos os usuários -->
+        <header class="bg-white shadow-lg border-b-4 border-blue-500 sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-lg">📚</span>
+                        </div>
+                        <h1 class="text-2xl font-bold text-gray-800">EduConnect</h1>
+                    </div>
+                    <nav class="flex space-x-8">
+                        <a href="/home" class="nav-btn text-blue-600 font-semibold border-b-2 border-blue-600 pb-1">Início</a>
+                        <a href="/turmas" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Turmas</a>
+                        <a href="/atividades" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Atividades</a>
+                        <a href="/notas" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Notas</a>
+                        <a href="/horarios" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Horários</a>
+                        <a href="/biblioteca" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Biblioteca</a>
+                        <a href="/documentos" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Documentos</a>
+
+                    </nav>
+                    <div class="flex items-center space-x-4">
+                        <span id="userName" class="text-sm text-gray-600"></span>
+                        <div id="userAvatar" class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-600 transition-colors">
+                            <span class="text-white text-sm font-semibold"></span>
+                        </div>
+                    <a href="/logout" class="text-sm text-gray-600 hover:text-red-600 transition-colors">Sair</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Mobile Sidebar -->
+        <div id="mobileSidebar" class="fixed inset-0 z-40 md:hidden sidebar-transition transform -translate-x-full">
+            <div class="fixed inset-0 bg-black opacity-50" onclick="closeMobileSidebar()"></div>
+            <div class="relative flex flex-col w-64 h-full bg-white shadow-xl">
+                <div class="p-6 border-b">
+                    <h2 class="text-xl font-bold text-gray-800">Menu</h2>
+                </div>
+                <nav id="mobileNavContent" class="flex-1 p-4 space-y-2">
+                    <!-- Content will be populated by JavaScript -->
+                </nav>
+            </div>
+        </div>
+    </div>
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Dashboard do Professor</h2>
+                <p class="text-gray-600">Visão geral do sistema escolar</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Total de Alunos</p>
+                            <p class="text-3xl font-bold text-blue-600">342</p>
+                            <p class="text-sm text-green-600">↗ +12 este mês</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <span class="text-2xl">👥</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Turmas Ativas</p>
+                            <p class="text-3xl font-bold text-green-600">12</p>
+                            <p class="text-sm text-blue-600">100% ocupação</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <span class="text-2xl">🏫</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Eventos Hoje</p>
+                            <p class="text-3xl font-bold text-purple-600">5</p>
+                            <p class="text-sm text-purple-600">3 pendentes</p>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <span class="text-2xl">📅</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Média Geral</p>
+                            <p class="text-3xl font-bold text-orange-600">8.7</p>
+                            <p class="text-sm text-green-600">↗ +0.3 pontos</p>
+                        </div>
+                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <span class="text-2xl">📊</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts and Quick Actions -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <!-- Performance Chart -->
+                <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-6">Desempenho por Turma</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600 w-20">9º A</span>
+                            <div class="flex-1 mx-4 bg-gray-200 rounded-full h-3">
+                                <div class="bg-green-500 h-3 rounded-full chart-bar" style="width: 88%"></div>
+                            </div>
+                            <span class="text-sm font-semibold text-green-600">8.8</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600 w-20">8º B</span>
+                            <div class="flex-1 mx-4 bg-gray-200 rounded-full h-3">
+                                <div class="bg-blue-500 h-3 rounded-full chart-bar" style="width: 82%"></div>
+                            </div>
+                            <span class="text-sm font-semibold text-blue-600">8.2</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-gray-600 w-20">7º C</span>
+                            <div class="flex-1 mx-4 bg-gray-200 rounded-full h-3">
+                                <div class="bg-yellow-500 h-3 rounded-full chart-bar" style="width: 75%"></div>
+                            </div>
+                            <span class="text-sm font-semibold text-yellow-600">7.5</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Ações Rápidas</h3>
+                    <div class="space-y-3">
+                        <button onclick="openModal('novaAulaModal')"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                            📝 Nova Aula
+                        </button>
+                        <button id="novaTurmaButton" onclick="openModal('novaTurmaModal')"
+                            class="hidden w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                            👥 Nova Turma
+                        </button>
+
+                        <button onclick="openModal('novoEventoModal')"
+                            class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                            📅 Novo Evento
+                        </button>
+                        <button onclick="window.location.href='/chat'"
+                            class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                            📢 Conversa
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Dashboard -->
+        <div id="dashboard-aluno" class="section hidden">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Meu Painel</h2>
+                <p class="text-gray-600">Bem-vindo de volta, João!</p>
+            </div>
+
+            <!-- Student Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Média Geral</p>
+                            <p class="text-3xl font-bold text-green-600">8.5</p>
+                            <p class="text-sm text-green-600">↗ Melhorando</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <span class="text-2xl">📊</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Frequência</p>
+                            <p class="text-3xl font-bold text-blue-600">95%</p>
+                            <p class="text-sm text-blue-600">Excelente</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <span class="text-2xl">✅</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Atividades</p>
+                            <p class="text-3xl font-bold text-orange-600">3</p>
+                            <p class="text-sm text-orange-600">Pendentes</p>
+                        </div>
+                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <span class="text-2xl">📝</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Próxima Prova</p>
+                            <p class="text-3xl font-bold text-purple-600">2</p>
+                            <p class="text-sm text-purple-600">dias</p>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <span class="text-2xl">⏰</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student Content Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Today's Schedule -->
+                <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-6">Horário de Hoje</h3>
+                    <div class="space-y-4">
+                        <div
+                            class="flex items-center justify-between p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                            <div class="flex items-center space-x-4">
+                                <div class="text-center">
+                                    <p class="text-sm font-semibold text-blue-600">08:00</p>
+                                    <p class="text-xs text-gray-500">08:50</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-800">Matemática</p>
+                                    <p class="text-sm text-gray-600">Prof. Maria Silva • Sala 201</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">Agora</span>
+                        </div>
+                        <div
+                            class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border-l-4 border-gray-300">
+                            <div class="flex items-center space-x-4">
+                                <div class="text-center">
+                                    <p class="text-sm font-semibold text-gray-600">09:00</p>
+                                    <p class="text-xs text-gray-500">09:50</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-800">Física</p>
+                                    <p class="text-sm text-gray-600">Prof. João Santos • Lab 105</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">Próxima</span>
+                        </div>
+                        <div
+                            class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border-l-4 border-gray-300">
+                            <div class="flex items-center space-x-4">
+                                <div class="text-center">
+                                    <p class="text-sm font-semibold text-gray-600">10:10</p>
+                                    <p class="text-xs text-gray-500">11:00</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-800">Português</p>
+                                    <p class="text-sm text-gray-600">Prof. Ana Costa • Sala 203</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions & Notifications -->
+                <div class="space-y-6">
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Ações Rápidas</h3>
+                        <div class="space-y-3">
+                            <button onclick="showSection('minhas-notas')"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm transition-colors">
+                                📊 Ver Notas
+                            </button>
+                            <button onclick="showSection('atividades')"
+                                class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-sm transition-colors">
+                                📝 Atividades
+                            </button>
+                            <button onclick="showSection('biblioteca')"
+                                class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg text-sm transition-colors">
+                                📚 Biblioteca
+                            </button>
+                            <button onclick="showSection('documentos')"
+                                class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg text-sm transition-colors">
+                                📂 Documentos
+                            </button>
+                            <button onclick="showSection('horarios')"
+                                class="w-full bg-orange-600 hover:bg-orange-700 text-white py-2 rounded-lg text-sm transition-colors">
+                                ⏰ Horários
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Notificações</h3>
+                        <div class="space-y-3">
+                            <div class="p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg">
+                                <p class="text-sm font-medium text-gray-800">Nova atividade</p>
+                                <p class="text-xs text-gray-600">Matemática - Lista de exercícios</p>
+                            </div>
+                            <div class="p-3 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
+                                <p class="text-sm font-medium text-gray-800">Prova marcada</p>
+                                <p class="text-xs text-gray-600">Física - 15/12 às 14h</p>
+                            </div>
+                            <div class="p-3 bg-green-50 border-l-4 border-green-400 rounded-r-lg">
+                                <p class="text-sm font-medium text-gray-800">Nota lançada</p>
+                                <p class="text-xs text-gray-600">Português - Redação: 9.0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Notification -->
+        <div id="notification2" class="notification hidden">
+            <div class="bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg">
+                <div class="flex items-center">
+                    <span class="mr-2">✓</span>
+                    <span id="notification2Text">Ação realizada com sucesso!</span>
+                </div>
+            </div>
+        </div>
+<!-- Modal: Nova Aula -->
+<div id="novaAulaModal" class="modal">
+  <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md fade-in">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Criar Nova Aula</h2>
+    <form id="novaAulaForm" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Nome da Turma</label>
+        <input type="text" id="nomeTurma" class="w-full px-4 py-2 border rounded-md" required>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Série</label>
+        <input type="text" id="serie" class="w-full px-4 py-2 border rounded-md" required>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Matéria</label>
+        <input type="text" id="disciplina" class="w-full px-4 py-2 border rounded-md" required>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Sala</label>
+        <input type="text" id="sala" class="w-full px-4 py-2 border rounded-md" required>
+      </div>
+      <div class="flex justify-end space-x-4">
+        <button type="button" onclick="closeModal('novaAulaModal')" class="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400">Cancelar</button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Criar</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+function openModal(id) {
+  document.getElementById(id).classList.add('show');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+document.getElementById('novaAulaForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const nomeTurma = document.getElementById('nomeTurma').value;
+  const serie = document.getElementById('serie').value;
+  const disciplina = document.getElementById('disciplina').value;
+  const sala = document.getElementById('sala').value;
+  const professor_email = localStorage.getItem("userEmail"); // Pega o email do professor logado
+
+  const response = await fetch('/criar_turma', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nome_turma: nomeTurma, serie, disciplina, professor_email })
+  });
+
+  const result = await response.json();
+
+  showNotification(result.message, result.success);
+
+  if (result.success) {
+    closeModal('novaAulaModal');
+    document.getElementById('novaAulaForm').reset();
+    // Opcional: recarregar a lista de turmas
+  }
+});
+</script>
+<!-- Modal: Novo Evento -->
+<div id="novoEventoModal" class="modal">
+  <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md fade-in">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Criar Novo Evento</h2>
+    <form id="novoEventoForm" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Título do Evento</label>
+        <input type="text" id="eventoTitulo" class="w-full px-4 py-2 border rounded-md" required>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Descrição</label>
+        <textarea id="eventoDescricao" class="w-full px-4 py-2 border rounded-md" required></textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Data</label>
+        <input type="date" id="eventoData" class="w-full px-4 py-2 border rounded-md" required>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700">Hora</label>
+        <input type="time" id="eventoHora" class="w-full px-4 py-2 border rounded-md" required>
+      </div>
+      <div class="flex justify-end space-x-4">
+        <button type="button" onclick="closeModal('novoEventoModal')" class="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400">Cancelar</button>
+        <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">Criar</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+document.getElementById('novoEventoForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  const titulo = document.getElementById('eventoTitulo').value;
+  const descricao = document.getElementById('eventoDescricao').value;
+  const data = document.getElementById('eventoData').value;
+  const hora = document.getElementById('eventoHora').value;
+  const professor_email = localStorage.getItem("userEmail");
+
+  const response = await fetch('/criar_evento', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ titulo, descricao, data, hora, professor_email })
+  });
+
+  const result = await response.json();
+
+  showNotification(result.message, result.success);
+
+  if (result.success) {
+    closeModal('novoEventoModal');
+    document.getElementById('novoEventoForm').reset();
+  }
+});
+</script>
+
+<!-- Adicionar no final dos arquivos .html  para ter o chat suspenso-->
+{% include '_chat_widget.html' %}
+
+</body>
+
+</html>
+{% include 'notific.html' %}

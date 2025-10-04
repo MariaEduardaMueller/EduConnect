@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <title>Horários | EduConnect</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <header class="bg-white shadow-lg border-b-4 border-blue-500 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-lg">📚</span>
+                    </div>
+                    <h1 class="text-2xl font-bold text-gray-800">EduConnect</h1>
+                </div>
+                <nav class="flex space-x-8">
+                    <a href="/home" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Início</a>
+                    <a href="/turmas" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Turmas</a>
+                    <a href="/atividades" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Atividades</a>
+                    <a href="/notas" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Notas</a>
+                    <a href="/horarios" class="nav-btn text-blue-600 font-semibold border-b-2 border-blue-600 pb-1">Horários</a>
+                    <a href="/biblioteca" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Biblioteca</a>
+                    <a href="/documentos" class="nav-btn text-gray-600 hover:text-blue-600 transition-colors">Documentos</a>
+
+                </nav>
+                <div class="flex items-center space-x-4">
+                    <span id="userName" class="text-sm text-gray-600"></span>
+                    <div id="userAvatar" class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-600 transition-colors">
+                        <span class="text-white text-sm font-semibold"></span>
+                    </div>
+                    <a href="/logout" class="text-sm text-gray-600 hover:text-red-600 transition-colors">Sair</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Student-only sections -->
+    <div id="horarios" class="section max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 mb-16">
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Meus Horários</h2>
+            <p class="text-gray-600">Grade de horários das suas aulas</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md overflow-hidden mb-10">
+            <div class="p-6 border-b border-gray-200">
+                <h3 class="text-xl font-semibold text-gray-800">Grade Semanal - 9º Ano A</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Horário</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Segunda</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Terça</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quarta</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quinta</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sexta</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">08:00 - 08:50</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <div class="p-2 bg-blue-100 rounded text-center">
+                                    <p class="font-semibold text-blue-800">Matemática</p>
+                                    <p class="text-xs text-blue-600">Sala 201</p>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <div class="p-2 bg-green-100 rounded text-center">
+                                    <p class="font-semibold text-green-800">Física</p>
+                                    <p class="text-xs text-green-600">Lab 105</p>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <div class="p-2 bg-purple-100 rounded text-center">
+                                    <p class="font-semibold text-purple-800">Português</p>
+                                    <p class="text-xs text-purple-600">Sala 203</p>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <div class="p-2 bg-yellow-100 rounded text-center">
+                                    <p class="font-semibold text-yellow-800">História</p>
+                                    <p class="text-xs text-yellow-600">Sala 104</p>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <div class="p-2 bg-red-100 rounded text-center">
+                                    <p class="font-semibold text-red-800">Ed. Física</p>
+                                    <p class="text-xs text-red-600">Quadra</p>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- Mais horários aqui -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Bloco da Agenda -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h3 class="text-2xl font-semibold text-gray-800 mb-4">Agenda de Recados e Informações</h3>
+            <ul class="space-y-4 max-h-64 overflow-y-auto">
+                <!-- Exemplo de recado -->
+                <li class="p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+                    <p class="font-semibold text-yellow-700">📅 Prova de Matemática</p>
+                    <p class="text-sm text-gray-700">Dia 15/10 às 10h, sala 201.</p>
+                </li>
+                <li class="p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
+                    <p class="font-semibold text-blue-700">✏️ Entrega de Trabalho de História</p>
+                    <p class="text-sm text-gray-700">Data limite: 20/10.</p>
+                </li>
+                <li class="p-4 bg-green-50 border-l-4 border-green-400 rounded">
+                    <p class="font-semibold text-green-700">🔔 Reunião de Pais</p>
+                    <p class="text-sm text-gray-700">Será no dia 25/10 às 19h, na escola.</p>
+                </li>
+                <!-- Você pode adicionar mais itens dinamicamente -->
+            </ul>
+        </div>
+    </div>
+
+    {% include '_chat_widget.html' %}
+    {% include 'notific.html' %}
+</body>
+</html>

@@ -1,0 +1,67 @@
+<div id="notificacaoWidget" style="position: fixed; top: 15px; right: 24px; z-index: 1050;">
+    <button id="notificacaoToggle" style="background: #facc15; color: #000; border-radius: 50%; width: 40px; height: 40px; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.2); font-size: 1.5rem; cursor: pointer;">
+        🔔
+    </button>
+    <div id="notificacaoBox" style="
+        display: none;
+        position: absolute;
+        top: 48px;
+        right: 0;
+        width: 320px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+        padding: 16px;
+        z-index: 1060;
+    ">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <strong style="color: #facc15;">Notificações</strong>
+            <button id="closeNotificacaoBox" style="background: none; border: none; font-size: 1.2rem; cursor: pointer;">✖</button>
+        </div>
+        <div id="notificacaoListaFlutuante" style="max-height: 240px; overflow-y: auto; background: #f9fafb; border-radius: 8px; padding: 8px; font-size: 0.95rem;">
+            <div>Carregando...</div>
+        </div>
+        <div class="text-end mt-2">
+            <a href="{{ url_for('notificacoes') }}">Ver todas as notificações →</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    const toggleBtn = document.getElementById('notificacaoToggle');
+    const box = document.getElementById('notificacaoBox');
+    const closeBtn = document.getElementById('closeNotificacaoBox');
+
+    toggleBtn.addEventListener('click', () => {
+        if (box.style.display === 'block') {
+            box.style.display = 'none';
+        } else {
+            box.style.display = 'block';
+
+            fetch('/notificacoes/recentes')
+                .then(res => res.json())
+                .then(data => {
+                    const lista = document.getElementById('notificacaoListaFlutuante');
+                    lista.innerHTML = '';
+
+                    if (data.length === 0) {
+                        lista.innerHTML = "<div>Nenhuma notificação recente.</div>";
+                    } else {
+                        data.forEach(n => {
+                            lista.innerHTML += `
+                                <div style="margin-bottom: 12px;">
+                                    <strong>${n[1]}</strong><br>
+                                    ${n[2].substring(0, 60)}...<br>
+                                    <small class="text-muted">${n[3]}</small>
+                                </div>
+                            `;
+                        });
+                    }
+                });
+        }
+    });
+
+    closeBtn.addEventListener('click', () => {
+        box.style.display = 'none';
+    });
+</script>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Notificação</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; }
+        .notif { border: 1px solid #ccc; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
+        .lida { background-color: #f0f0f0; }
+        .nao-lida { background-color: #fff8dc; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Minhas Notificação</h1>
+    <div id="lista"></div>
+
+    <script>
+        async function carregarNotificacao() {
+            const email = localStorage.getItem("usuario_email") || "teste@teste.com";
+            const res = await fetch(`/listar_notificacao?usuario_email=${email}`);
+            const data = await res.json();
+
+            const lista = document.getElementById("lista");
+            lista.innerHTML = "";
+
+            if (data.success) {
+                data.notificacao.forEach(n => {
+                    const div = document.createElement("div");
+                    div.className = `notif ${n.lida ? "lida" : "nao-lida"}`;
+                    div.innerHTML = `
+                        <h3>${n.titulo}</h3>
+                        <p>${n.mensagem}</p>
+                        <small>${n.data}</small><br>
+                        ${n.lida ? "" : `<button onclick="marcarLida(${n.id})">Marcar como lida</button>`}
+                    `;
+                    lista.appendChild(div);
+                });
+            }
+        }
+
+        async function marcarLida(id) {
+            await fetch(`/marcar_lida/${id}`, { method: "POST" });
+            carregarNotificacao();
+        }
+
+        carregarNotificacao();
+    </script>
+</body>
+</html>

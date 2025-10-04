@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduConnect - Sistema Escolar Completo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}"> -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-transition {
+            transition: transform 0.3s ease;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+        }
+
+        .chart-bar {
+            transition: height 0.5s ease;
+        }
+
+        .login-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+<script>
+    function toggleForm(formId) {
+        const loginForm = document.getElementById("loginForm");
+        const registerForm = document.getElementById("registerForm");
+        const tabLogin = document.getElementById("tabLogin");
+        const tabRegister = document.getElementById("tabRegister");
+
+        if (formId === 'loginForm') {
+            loginForm.classList.remove("hidden");
+            registerForm.classList.add("hidden");
+            tabLogin.classList.add("active");
+            tabRegister.classList.remove("active");
+        } else {
+            loginForm.classList.add("hidden");
+            registerForm.classList.remove("hidden");
+            tabLogin.classList.remove("active");
+            tabRegister.classList.add("active");
+        }
+    }
+
+    function showNotification(message, success = true) {
+        const notification = document.getElementById("notification");
+        const text = document.getElementById("notificationText");
+        text.innerText = message;
+        notification.classList.remove("hidden");
+        notification.querySelector('div').classList.toggle('bg-green-500', success);
+        notification.querySelector('div').classList.toggle('bg-red-500', !success);
+
+        setTimeout(() => {
+            notification.classList.add("hidden");
+        }, 3000);
+    }
+
+    async function login(e) {
+        e.preventDefault();
+
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+        const userType = document.getElementById("loginUserType").value;
+
+        try {
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password, user_type: userType })
+            });
+
+            const result = await response.json();
+            showNotification(result.message, result.success);
+
+            if (result.success) {
+                localStorage.setItem("userEmail", email);
+                localStorage.setItem("userType", userType);
+                localStorage.setItem("isLoggedIn", "true");
+
+                setTimeout(() => {
+                    window.location.href = "/home"; 
+                }, 1500);
+            }
+        } catch (err) {
+            showNotification("Erro na conexão com o servidor.", false);
+        }
+    }
+
+    async function register(e) {
+        e.preventDefault();
+
+        const name = document.getElementById("registerName").value;
+        const email = document.getElementById("registerEmail").value;
+        const password = document.getElementById("registerPassword").value;
+        const userType = document.getElementById("registerUserType").value;
+
+        try {
+            const response = await fetch("/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email, password, user_type: userType })
+            });
+
+            const result = await response.json();
+            showNotification(result.message, result.success);
+
+            if (result.success) {
+                toggleForm("loginForm"); // volta pro login
+            }
+        } catch (err) {
+            showNotification("Erro ao se cadastrar.", false);
+        }
+    }
+
+    // Set default tab
+    toggleForm("loginForm");
+</script>
+
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen login-bg flex items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
+            <div class="text-center mb-6">
+                <div
+                    class="w-20 h-20 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <span class="text-white font-bold text-3xl">📚</span>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">EduConnect</h1>
+                <p class="text-gray-600">Sistema Escolar Integrado</p>
+            </div>
+
+
+            <!-- Botões de Tab -->
+            <div class="flex justify-center mb-6 space-x-6">
+                <button onclick="toggleForm('loginForm')" id="tabLogin"
+                    class="tab-button text-sm font-semibold text-gray-700 hover:text-indigo-600">Login</button>
+                <button onclick="toggleForm('registerForm')" id="tabRegister"
+                    class="tab-button text-sm font-semibold text-gray-700 hover:text-indigo-600">Cadastrar</button>
+            </div>
+
+            <!-- FORMULÁRIO DE LOGIN -->
+
+            <form id="loginForm" onsubmit="login(event)" class="space-y-4">
+                <h2 class="text-xl font-bold text-gray-800 text-center">Entrar</h2>
+                <input type="email" id="loginEmail" name="email" placeholder="Email" required
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <input type="password" id="loginPassword" name="password" placeholder="Senha" required
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <select id="loginUserType" name="user_type"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required>
+                    <option value="">Tipo de usuário</option>
+                    <option value="professor">Professor</option>
+                    <option value="aluno">Aluno</option>
+                </select>
+                <button type="submit"
+                    class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105">Entrar</button>
+            </form>
+
+            <!-- FORMULÁRIO DE CADASTRO -->
+            <form id="registerForm" onsubmit="register(event)" class="space-y-4 hidden">
+                <h2 class="text-xl font-bold text-gray-800 text-center">Cadastrar</h2>
+                <input type="text" id="registerName" name="name" placeholder="Nome completo" required
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <input type="email" id="registerEmail" name="email" placeholder="Email" required
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <input type="password" id="registerPassword" name="password" placeholder="Senha" required
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <select id="registerUserType" name="user_type"
+                    class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required>
+                    <option value="">Tipo de usuário</option>
+                    <option value="professor">Professor</option>
+                    <option value="aluno">Aluno</option>
+                </select>
+                <button type="submit"
+                    class="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105">Cadastrar</button>
+            </form>
+        </div>
+    </div>
+    <!-- Notification -->
+    <div id="notification" class="notification hidden">
+        <div class="bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg">
+            <div class="flex items-center">
+                <span class="mr-2">✓</span>
+                <span id="notificationText">Ação realizada com sucesso!</span>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
